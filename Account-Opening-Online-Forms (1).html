@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Individual Account Opening — Data Entry</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#2a2a2a;
+    --paper:#f4f3f2;
+    --panel:#ffffff;
+    --line:#dcd9d6;
+    --pine:#9c1c1f;
+    --pine-dark:#731315;
+    --gold:#6e6b67;
+    --gold-soft:#eeecea;
+    --red:#9c1c1f;
+    --muted:#726f6b;
+    --radius:3px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    line-height:1.45;
+  }
+  .label-face{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  header.top{
+    background:var(--pine);
+    color:#f2efe4;
+    padding:26px 32px 22px;
+    border-bottom:3px solid var(--gold);
+  }
+  header.top .eyebrow{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    color:#c9d6c2;
+    margin:0 0 6px;
+  }
+  header.top h1{
+    margin:0;
+    font-weight:500;
+    font-size:26px;
+    letter-spacing:.01em;
+  }
+  header.top .sub{
+    margin:8px 0 0;
+    color:#d7ceb2;
+    font-size:14.5px;
+    max-width:62ch;
+  }
+
+  .toolbar{
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    padding:14px 32px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    position:sticky;
+    top:0;
+    z-index:20;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  .btn{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    border:1px solid var(--pine);
+    background:var(--pine);
+    color:#fff;
+    padding:9px 16px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+    cursor:pointer;
+    transition:background .15s ease, transform .05s ease;
+  }
+  .btn:hover{background:var(--pine-dark);}
+  .btn:active{transform:translateY(1px);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--pine);
+  }
+  .btn.secondary:hover{background:var(--gold-soft);}
+  input[type=file]{display:none;}
+  .file-status{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-left:2px;
+  }
+  .toolbar-spacer{flex:1;}
+  .save-note{
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:#9c1c1f;display:inline-block;}
+
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:28px 32px 100px;
+  }
+
+  nav.toc{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:26px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  nav.toc a{
+    font-size:12.5px;
+    color:var(--pine);
+    text-decoration:none;
+    border:1px solid var(--line);
+    padding:6px 11px;
+    border-radius:20px;
+    background:var(--panel);
+  }
+  nav.toc a:hover{border-color:var(--gold); background:var(--gold-soft);}
+
+  section.card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin-bottom:22px;
+    overflow:hidden;
+  }
+  section.card > .head{
+    padding:16px 24px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    background:linear-gradient(180deg, #fbfaf6, #ffffff);
+  }
+  section.card > .head .tag{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:11px;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    padding:2px 7px;
+    border-radius:20px;
+    letter-spacing:.03em;
+  }
+  section.card > .head h2{
+    margin:0;
+    font-weight:500;
+    font-size:18.5px;
+  }
+  section.card > .head p{
+    margin:4px 0 0;
+    font-size:13px;
+    color:var(--muted);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    flex-basis:100%;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:0;
+  }
+  .field{
+    padding:14px 24px;
+    border-bottom:1px solid #eeece2;
+    border-right:1px solid #eeece2;
+  }
+  .field.wide{grid-column:1 / -1;}
+  .grid .field:nth-last-child(1),
+  .grid .field:nth-last-child(2):nth-child(odd){
+    border-bottom:none;
+  }
+  .field label{
+    display:block;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:5px;
+    letter-spacing:.01em;
+  }
+  .field .key{
+    font-size:10.5px;
+    color:#a9a495;
+    margin-left:5px;
+  }
+  input[type=text], input[type=date], input[type=number], select, textarea{
+    width:100%;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:14.5px;
+    padding:8px 9px;
+    border:1px solid #c9c4b3;
+    border-radius:var(--radius);
+    background:#fffdf9;
+    color:var(--ink);
+  }
+  textarea{resize:vertical; min-height:46px;}
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--pine);
+    box-shadow:0 0 0 3px rgba(31,61,43,.12);
+  }
+  select{appearance:auto;}
+
+  .conditional{
+    border-left:2px solid var(--gold);
+    background:#fdfaf2;
+  }
+  .conditional.hidden{display:none;}
+
+  footer.bottom{
+    position:sticky;
+    bottom:0;
+    background:var(--panel);
+    border-top:1px solid var(--line);
+    padding:14px 32px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+
+  @media (max-width: 680px){
+    .grid{grid-template-columns:1fr;}
+    header.top, .toolbar, main, footer.bottom{padding-left:18px; padding-right:18px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="eyebrow label-face">CLIENT ONBOARDING</p>
+  <h1>Individual Account Opening — Data Entry</h1>
+  <p class="sub">Loads applicant data from the source Excel, lets you review and edit one applicant at a time, and exports a new workbook in the exact same layout for the downstream form‑filling script.</p>
+</header>
+
+<div class="toolbar">
+  <button class="btn" id="loadBtn">Load Excel file…</button>
+  <input type="file" id="fileInput" accept=".xlsx,.xls">
+  <button class="btn secondary" id="resetBtn">Clear form</button>
+  <span class="file-status" id="fileStatus">No file loaded — form is blank</span>
+  <div class="toolbar-spacer"></div>
+  <span class="save-note"><span class="dot"></span>Nothing leaves your browser until you submit</span>
+</div>
+
+<main>
+  <nav class="toc" id="toc"></nav>
+  <div id="sections"></div>
+</main>
+
+<footer class="bottom">
+  <span class="file-status" id="submitStatus"></span>
+  <button class="btn secondary" id="downloadBtn">Download filled Excel</button>
+  <button class="btn" id="submitBtn">Submit application</button>
+</footer>
+
+<script>
+// Paste your Apps Script Web App URL here after deploying Code.gs
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzng_37bdiy8MPAwW6XTMpGam8THHOx_vodbESrSj_llFtT32T6bokGMn4GDDHKGFFN/exec';
+
+const DATA = {"schema": {"Section A": ["salutation", "full_name", "new_nric_passport", "old_nric", "date_of_birth", "gender", "race", "race_other", "marital_status", "nationality", "nationality_other", "country_of_residence", "res_address_line", "res_city", "res_state", "res_postcode", "res_country", "res_property_type", "res_property_type_other", "mailing_address_differs", "mail_address_line", "mail_city", "mail_state", "mail_postcode", "mail_country", "home_tel", "mobile_phone", "email", "social_media", "tin_number"], "Section B": ["family_contact_person_type", "family_next_of_kin_relationship", "family_full_name", "family_nric_passport", "family_date_of_birth", "family_employer_name_address", "family_employer_city", "family_employer_state", "family_employer_postcode", "family_employer_country", "family_occupation", "family_home_tel", "family_mobile_phone", "family_email", "related_to_bssb_staff_", "related_bssb_staff_name", "related_bssb_staff_relationship", "related_bssb_staff_nric", "related_to_bssb_client_flag", "related_bssb_client_name", "related_bssb_client_relationship", "related_bssb_client_nric"], "Section C": ["emp_status", "emp_status_other", "emp_occupation_designation", "emp_lth_group_employee", "emp_employer_name", "emp_employer_phone_general", "emp_company_reg_no", "emp_industry", "emp_sub_industry", "emp_office_address_line", "emp_office_city", "emp_office_state", "emp_office_postcode", "emp_office_country", "emp_office_tel_did", "emp_fax_no", "emp_start_retirement_date"], "Section D": ["bank_ref_bank_name", "bank_ref_branch_address", "bank_ref_account_type", "joint_bank_acc", "bank_ref_account_no", "fin_monthly_income", "fin_gross_annual_income_personal", "fin_joint_annual_income", "fin_net_asset", "fin_net_investment_portfolio", "fin_source_of_wealth", "fin_source_of_wealth_other", "inv_objective", "inv_risk_tolerance", "inv_trading_knowledge", "inv_product_interest", "inv_product_interest_other", "inv_other_brokers_flag", "inv_other_brokers_array", "inv_other_broker_name", "inv_other_broker_branch", "inv_other_broker_account_type", "pep_status_flag", "pep_relations_array", "pep_person_name", "pep_relationship", "pep_occupation", "pep_nric", "pep_employer_country"], "Section E": ["bisonline", "econtract_notes", "payment_instruction"], "Section F": ["principal"]}, "options": {"salutation": ["Mr", "Mrs", "Dato'", "Datuk"], "gender": ["Male", "Female"], "race": ["MALAY", "INDIAN", "CHINESE", "Others"], "marital_status": ["Single ", "Married", "Divorced"], "nationality": ["MALAYSIAN", "Others"], "res_property_type": ["Owned", "Rented", "Others"], "family_contact_person_type": ["Spouse", "Next of Kin"], "related_to_bssb_staff_": ["Yes", "No"], "employment_status": ["Employed", "Self-Employed", "Retired", "Others"], "bank_ref_account_type": ["SAVINGS", "CURRENT ", "OTHERS"], "fin_gross_annual_income_personal": ["BELOW 30K", "30K - 60K", "60K - 120K", "120K - 180K", "180K - 300K ", "ABOVE 300K"], "fin_joint_annual_income": ["BELOW 50K", "50K - 100K", "100K - 200K", "200K - 300K", "300K - 400K ", "ABOVE 400K"], "fin_net_asset": ["BELOW 50K", "50K - 200K", "200K - 500K", "500K - 1M", "1M - 3M", "ABOVE 3M"], "fin_net_investment_portfolio": ["BELOW 50K", "50K - 100K", "100K - 300K", "300K - 500k", "500k - 1M", "ABOVE 1M"], "fin_source_of_wealth": ["SAVINGS ", "SALARY", "BUSINESS/INVESTMENT INCOME", "RENTAL INCOME ", "INHERITED WEALTH", "SHAREHOLDINGS", "ASSET", "DIRECTORSHIP", "CREDIT FACILITY", "RETAINED EARNINGS"], "fin_source_of_wealth_other": ["DROPDOWN"], "inv_objective": ["SHORT TERM", "LONG TERM", "DIVIDEND INCOME ", "CAPITAL GROWTH"], "inv_risk_tolerance": ["CONSERVATIVE", "MODERATE", "AGGRESSIVE"], "inv_trading_knowledge": ["BEGINNER ", "INTERMEDIATE", "ADVANCE"], "inv_product_interest": ["EQUITIES TRADING (LOCAL)", "EQUITIES TRADING (FOREIGN)", "RETAIL EQUITY - SHARE MARGIN FINANCING "], "inv_product_interest_other": ["DROPDOWN"], "inv_other_brokers_flag": ["YES", "NO"], "pep_status_flag": ["YES", "NO"], "econtract notes": ["by e-mail", "BISonline"], "payment instruction": ["Issue cheque", "e-Payment"], "principal": ["For me as principal", "For and on behalf of party(ies)"]}};
+
+// ---- Section metadata: order, titles, blurbs ----
+const SECTION_META = {
+  "Section A": {title:"A · Applicant Particulars", blurb:"Personal, residential and contact details."},
+  "Section B": {title:"B · Family / Next of Kin & Declarations", blurb:"Next-of-kin details and BSSB staff/client relationship checks."},
+  "Section C": {title:"C · Employment", blurb:"Current employment or occupation details."},
+  "Section D": {title:"D · Financial, Investment & PEP", blurb:"Bank reference, income, investment profile and politically-exposed-person declaration."},
+  "Section E": {title:"E · Services", blurb:"BISonline, e-contract and payment preferences."},
+  "Section F": {title:"F · Declaration by Applicant", blurb:"Principal vs. on-behalf-of-party declaration."}
+};
+
+// ---- Per-field overrides: label text, input type, options key, conditional trigger ----
+const FIELD_OVERRIDES = {
+  salutation:            {label:"Salutation"},
+  full_name:             {label:"Full name (as per NRIC/passport)", wide:true},
+  new_nric_passport:     {label:"New NRIC / passport no."},
+  old_nric:               {label:"Old NRIC no."},
+  date_of_birth:          {label:"Date of birth", type:"date"},
+  gender:                 {label:"Gender", type:"dropdown", optionsKey:"gender"},
+  race:                   {label:"Race", type:"dropdown", optionsKey:"race", showOther:"race_other", otherTrigger:"Others"},
+  race_other:             {label:"Race — please specify", conditional:true},
+  marital_status:         {label:"Marital status", type:"dropdown", optionsKey:"marital_status"},
+  nationality:            {label:"Nationality", type:"dropdown", optionsKey:"nationality", showOther:"nationality_other", otherTrigger:"Others"},
+  nationality_other:      {label:"Nationality — please specify", conditional:true},
+  country_of_residence:   {label:"Country of residence"},
+  res_address_line:       {label:"Residential address", wide:true, type:"textarea"},
+  res_city:               {label:"Residential — city"},
+  res_state:              {label:"Residential — state"},
+  res_postcode:           {label:"Residential — postcode"},
+  res_country:            {label:"Residential — country"},
+  res_property_type:      {label:"Residential property type", type:"dropdown", optionsKey:"res_property_type", showOther:"res_property_type_other", otherTrigger:"Others"},
+  res_property_type_other:{label:"Property type — please specify", conditional:true},
+  mailing_address_differs:{label:"Mailing address (write \"AS ABOVE\" if same as residential)", wide:true},
+  mail_address_line:      {label:"Mailing address line", wide:true, type:"textarea"},
+  mail_city:              {label:"Mailing — city"},
+  mail_state:             {label:"Mailing — state"},
+  mail_postcode:          {label:"Mailing — postcode"},
+  mail_country:           {label:"Mailing — country"},
+  home_tel:               {label:"Home tel. no."},
+  mobile_phone:           {label:"Mobile phone no."},
+  email:                  {label:"E-mail address"},
+  social_media:           {label:"Social media handle"},
+  tin_number:             {label:"Tax identification no. (TIN)"},
+
+  family_contact_person_type:      {label:"Contact person type", type:"dropdown", optionsKey:"family_contact_person_type"},
+  family_next_of_kin_relationship: {label:"Relationship"},
+  family_full_name:                {label:"Full name", wide:true},
+  family_nric_passport:            {label:"NRIC / passport no."},
+  family_date_of_birth:            {label:"Date of birth", type:"date"},
+  family_employer_name_address:    {label:"Employer name & address", wide:true, type:"textarea"},
+  family_employer_city:            {label:"Employer — city"},
+  family_employer_state:           {label:"Employer — state"},
+  family_employer_postcode:        {label:"Employer — postcode"},
+  family_employer_country:         {label:"Employer — country"},
+  family_occupation:               {label:"Occupation"},
+  family_home_tel:                 {label:"Home tel. no."},
+  family_mobile_phone:             {label:"Mobile phone no."},
+  family_email:                    {label:"E-mail address"},
+  related_to_bssb_staff_:          {label:"Related to BSSB", type:"dropdown", optionsKey:"related_to_bssb_staff_"},
+  related_bssb_staff_name:         {label:"Staff name"},
+  related_bssb_staff_relationship: {label:"Relationship to staff"},
+  related_bssb_staff_nric:         {label:"Staff NRIC no."},
+  related_to_bssb_client_flag:     {label:"Related to an existing BSSB client?", type:"dropdown", optionsKey:"related_to_bssb_staff_"},
+  related_bssb_client_name:        {label:"Client name"},
+  related_bssb_client_relationship:{label:"Relationship to client"},
+  related_bssb_client_nric:        {label:"Client NRIC no."},
+
+  emp_status:                 {label:"Employment status", type:"dropdown", optionsKey:"employment_status", showOther:"emp_status_other", otherTrigger:"Others"},
+  emp_status_other:           {label:"Employment status — please specify", conditional:true},
+  emp_occupation_designation: {label:"Occupation / designation"},
+  emp_lth_group_employee:     {label:"LTH group employee?", type:"dropdown", optionsKey:"related_to_bssb_staff_yn"},
+  emp_employer_name:          {label:"Employer name"},
+  emp_employer_phone_general: {label:"Employer general phone"},
+  emp_company_reg_no:         {label:"Company registration no."},
+  emp_industry:                {label:"Industry"},
+  emp_sub_industry:            {label:"Sub-industry"},
+  emp_office_address_line:     {label:"Office address", wide:true, type:"textarea"},
+  emp_office_city:             {label:"Office — city"},
+  emp_office_state:            {label:"Office — state"},
+  emp_office_postcode:         {label:"Office — postcode"},
+  emp_office_country:          {label:"Office — country"},
+  emp_office_tel_did:          {label:"Office tel. / DID"},
+  emp_fax_no:                  {label:"Fax no."},
+  emp_start_retirement_date:   {label:"Employment start / retirement date", type:"date"},
+
+  bank_ref_bank_name:               {label:"Bank name"},
+  bank_ref_branch_address:          {label:"Branch / address", wide:true},
+  bank_ref_account_type:            {label:"Account type", type:"dropdown", optionsKey:"bank_ref_account_type"},
+  joint_bank_acc:                   {label:"Joint bank account?", type:"dropdown", optionsKey:"related_to_bssb_staff_yn"},
+  bank_ref_account_no:              {label:"Bank account no."},
+  fin_monthly_income:               {label:"Monthly income"},
+  fin_gross_annual_income_personal: {label:"Gross annual income (personal)", type:"dropdown", optionsKey:"fin_gross_annual_income_personal"},
+  fin_joint_annual_income:          {label:"Joint annual income", type:"dropdown", optionsKey:"fin_joint_annual_income"},
+  fin_net_asset:                    {label:"Net asset", type:"dropdown", optionsKey:"fin_net_asset"},
+  fin_net_investment_portfolio:     {label:"Net investment portfolio", type:"dropdown", optionsKey:"fin_net_investment_portfolio"},
+  fin_source_of_wealth:             {label:"Source of wealth", type:"dropdown", optionsKey:"fin_source_of_wealth", showOther:"fin_source_of_wealth_other", otherTrigger:"OTHERS"},
+  fin_source_of_wealth_other:       {label:"Source of wealth — please specify", conditional:true},
+  inv_objective:                    {label:"Investment objective", type:"dropdown", optionsKey:"inv_objective"},
+  inv_risk_tolerance:               {label:"Risk tolerance", type:"dropdown", optionsKey:"inv_risk_tolerance"},
+  inv_trading_knowledge:            {label:"Trading knowledge", type:"dropdown", optionsKey:"inv_trading_knowledge"},
+  inv_product_interest:             {label:"Product interest", type:"dropdown", optionsKey:"inv_product_interest", showOther:"inv_product_interest_other", otherTrigger:"OTHERS"},
+  inv_product_interest_other:       {label:"Product interest — please specify", conditional:true},
+  inv_other_brokers_flag:           {label:"Accounts with other brokers?", type:"dropdown", optionsKey:"inv_other_brokers_flag", showOther:["inv_other_brokers_array","inv_other_broker_name","inv_other_broker_branch","inv_other_broker_account_type"], otherTrigger:"YES"},
+  inv_other_brokers_array:          {label:"Other broker(s) — list", conditional:true},
+  inv_other_broker_name:            {label:"Other broker — name", conditional:true},
+  inv_other_broker_branch:          {label:"Other broker — branch", conditional:true},
+  inv_other_broker_account_type:    {label:"Other broker — account type", conditional:true},
+  pep_status_flag:                  {label:"Politically exposed person (PEP)?", type:"dropdown", optionsKey:"pep_status_flag", showOther:["pep_relations_array","pep_person_name","pep_relationship","pep_occupation","pep_nric","pep_employer_country"], otherTrigger:"YES"},
+  pep_relations_array:              {label:"PEP — relation type", conditional:true},
+  pep_person_name:                  {label:"PEP — name", conditional:true},
+  pep_relationship:                 {label:"PEP — relationship to applicant", conditional:true},
+  pep_occupation:                   {label:"PEP — occupation", conditional:true},
+  pep_nric:                         {label:"PEP — NRIC no.", conditional:true},
+  pep_employer_country:             {label:"PEP — employer country", conditional:true},
+
+  bisonline:            {label:"Register for BISonline?", type:"dropdown", optionsKey:"related_to_bssb_staff_yn"},
+  econtract_notes:      {label:"e-Contract notes delivery", type:"dropdown", optionsKey:"econtract notes"},
+  payment_instruction:  {label:"Payment instruction", type:"dropdown", optionsKey:"payment instruction"},
+
+  principal:            {label:"Declaration", type:"dropdown", optionsKey:"principal", wide:true},
+};
+
+// Yes/No option set reused across a few boolean-style fields not in the Dropdown sheet verbatim
+DATA.options["related_to_bssb_staff_yn"] = ["YES","NO"];
+
+function fieldLabel(key){
+  const ov = FIELD_OVERRIDES[key];
+  if (ov && ov.label) return ov.label;
+  return key.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function excelDateToInput(v){
+  if (!v) return '';
+  const s = String(v);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : '';
+}
+
+function buildBlankState(){
+  const blank = {};
+  Object.keys(DATA.schema).forEach(sectionKey => {
+    blank[sectionKey] = {};
+    DATA.schema[sectionKey].forEach(fieldKey => { blank[sectionKey][fieldKey] = ''; });
+  });
+  return blank;
+}
+
+let state = buildBlankState();
+
+function buildForm(){
+  const tocEl = document.getElementById('toc');
+  const sectionsEl = document.getElementById('sections');
+  tocEl.innerHTML = '';
+  sectionsEl.innerHTML = '';
+
+  Object.keys(DATA.schema).forEach((sectionKey, idx) => {
+    const meta = SECTION_META[sectionKey] || {title: sectionKey, blurb:''};
+    const anchor = 'sec-' + idx;
+
+    const a = document.createElement('a');
+    a.href = '#' + anchor;
+    a.textContent = meta.title.split('·')[0].trim();
+    tocEl.appendChild(a);
+
+    const section = document.createElement('section');
+    section.className = 'card';
+    section.id = anchor;
+
+    const head = document.createElement('div');
+    head.className = 'head';
+    head.innerHTML = `<span class="tag label-face">${sectionKey.toUpperCase()}</span><h2>${meta.title.split('·')[1] ? meta.title.split('·')[1].trim() : meta.title}</h2><p>${meta.blurb}</p>`;
+    section.appendChild(head);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+
+    DATA.schema[sectionKey].forEach(fieldKey => {
+      const ov = FIELD_OVERRIDES[fieldKey] || {};
+      const wrap = document.createElement('div');
+      wrap.className = 'field' + (ov.wide ? ' wide' : '') + (ov.conditional ? ' conditional' : '');
+      wrap.dataset.field = fieldKey;
+
+      const label = document.createElement('label');
+      label.textContent = fieldLabel(fieldKey);
+      wrap.appendChild(label);
+
+      let input;
+      if (ov.type === 'dropdown') {
+        input = document.createElement('select');
+        const opts = DATA.options[ov.optionsKey] || [];
+        const blank = document.createElement('option');
+        blank.value = ''; blank.textContent = '— select —';
+        input.appendChild(blank);
+        opts.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o; opt.textContent = o.trim();
+          input.appendChild(opt);
+        });
+      } else if (ov.type === 'textarea') {
+        input = document.createElement('textarea');
+      } else if (ov.type === 'date') {
+        input = document.createElement('input');
+        input.type = 'date';
+      } else {
+        input = document.createElement('input');
+        input.type = 'text';
+      }
+      input.id = 'f_' + fieldKey;
+      input.name = fieldKey;
+
+      const val = (fieldKey === 'salutation') ? '' : (state[sectionKey] ? state[sectionKey][fieldKey] : '');
+      if (ov.type === 'date') {
+        input.value = excelDateToInput(val);
+      } else {
+        input.value = (val === null || val === undefined) ? '' : val;
+      }
+
+      input.addEventListener('input', () => {
+        if (!state[sectionKey]) state[sectionKey] = {};
+        state[sectionKey][fieldKey] = input.value;
+        if (ov.showOther) evaluateConditional(sectionKey, fieldKey, ov);
+      });
+      if (ov.type === 'dropdown') {
+        input.addEventListener('change', () => {
+          if (ov.showOther) evaluateConditional(sectionKey, fieldKey, ov);
+        });
+      }
+
+      wrap.appendChild(input);
+      grid.appendChild(wrap);
+    });
+
+    section.appendChild(grid);
+    sectionsEl.appendChild(section);
+  });
+
+  // set initial conditional visibility
+  Object.keys(FIELD_OVERRIDES).forEach(k => {
+    const ov = FIELD_OVERRIDES[k];
+    if (ov.showOther) {
+      const sectionKey = Object.keys(DATA.schema).find(s => DATA.schema[s].includes(k));
+      if (sectionKey) evaluateConditional(sectionKey, k, ov);
+    }
+  });
+}
+
+function evaluateConditional(sectionKey, triggerKey, ov){
+  const triggerInput = document.getElementById('f_' + triggerKey);
+  if (!triggerInput) return;
+  const show = triggerInput.value && triggerInput.value.trim().toUpperCase() === String(ov.otherTrigger).toUpperCase();
+  const targets = Array.isArray(ov.showOther) ? ov.showOther : [ov.showOther];
+  targets.forEach(t => {
+    const wrap = document.querySelector(`.field[data-field="${t}"]`);
+    if (wrap) wrap.classList.toggle('hidden', !show);
+  });
+}
+
+buildForm();
+
+// ---- Load a new Excel file ----
+document.getElementById('loadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const wb = XLSX.read(evt.target.result, {type:'array', cellDates:false});
+      const newState = {};
+      Object.keys(DATA.schema).forEach(sectionKey => {
+        newState[sectionKey] = {};
+        if (!wb.SheetNames.includes(sectionKey)) return;
+        const ws = wb.Sheets[sectionKey];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+        const headers = rows[0] || [];
+        const firstDataRow = rows[1] || [];
+        headers.forEach((h, i) => {
+          if (!h) return;
+          let v = firstDataRow[i];
+          if (v === undefined) v = '';
+          newState[sectionKey][h] = v;
+        });
+      });
+      if (newState['Section A']) newState['Section A']['salutation'] = '';
+      state = newState;
+      buildForm();
+      document.getElementById('fileStatus').textContent = 'Currently showing: ' + file.name;
+    } catch (err) {
+      alert('Could not read that file — please check it matches the expected Section A–F layout.\n\n' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  state = buildBlankState();
+  buildForm();
+  document.getElementById('fileStatus').textContent = 'No file loaded — form is blank';
+});
+
+// ---- Export to Excel, matching the original workbook layout exactly ----
+function buildWorkbook(){
+  const wb = XLSX.utils.book_new();
+
+  Object.keys(DATA.schema).forEach(sectionKey => {
+    const headers = DATA.schema[sectionKey].concat([null]); // preserve trailing blank marker column
+    const dataRow = DATA.schema[sectionKey].map(h => {
+      const v = state[sectionKey] ? state[sectionKey][h] : '';
+      return (v === undefined || v === null) ? '' : v;
+    }).concat(['x']);
+
+    const aoa = [headers, dataRow];
+    // preserve the 9 trailing template rows (blank, marker-only) as in the source file
+    for (let i = 0; i < 9; i++) {
+      const blank = new Array(headers.length - 1).fill(null).concat(['x']);
+      aoa.push(blank);
+    }
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    XLSX.utils.book_append_sheet(wb, ws, sectionKey);
+  });
+
+  // carry the Dropdown reference sheet through unchanged
+  const ddHeaders = Object.keys(DATA.options).filter(k => k !== 'related_to_bssb_staff_yn');
+  const maxLen = Math.max(...ddHeaders.map(h => DATA.options[h].length));
+  const ddRows = [ddHeaders];
+  for (let i = 0; i < maxLen; i++) {
+    ddRows.push(ddHeaders.map(h => DATA.options[h][i] !== undefined ? DATA.options[h][i] : null));
+  }
+  const ddWs = XLSX.utils.aoa_to_sheet(ddRows);
+  XLSX.utils.book_append_sheet(wb, ddWs, 'Dropdown');
+
+  return wb;
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const wb = buildWorkbook();
+  const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  const blob = new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+
+  const name = (state['Section A'] && state['Section A']['full_name']) ? state['Section A']['full_name'].trim() : 'applicant';
+  const safeName = name.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g,'') || 'applicant';
+  const filename = `ao_data_${safeName}.xlsx`;
+
+  try {
+    const downloads = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+    if (downloads) {
+      await downloads.save({filename, data: blob});
+    } else {
+      // fallback for environments without the downloads capability
+      XLSX.writeFile(wb, filename);
+    }
+  } catch (err) {
+    if (err && err.code === 'declined') return; // viewer cancelled the save prompt
+    console.error(err);
+    alert('Could not save the file' + (err && err.message ? (': ' + err.message) : '.'));
+  }
+});
+
+// ---- Submit to Google Sheet ----
+function flattenState(){
+  const flat = {};
+  Object.keys(DATA.schema).forEach(sectionKey => {
+    DATA.schema[sectionKey].forEach(fieldKey => {
+      flat[fieldKey] = (state[sectionKey] && state[sectionKey][fieldKey] !== undefined)
+        ? state[sectionKey][fieldKey] : '';
+    });
+  });
+  return flat;
+}
+
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('submitStatus');
+  const submitBtn = document.getElementById('submitBtn');
+
+  const fullName = (state['Section A'] && state['Section A']['full_name'] || '').trim();
+  const nric = (state['Section A'] && state['Section A']['new_nric_passport'] || '').trim();
+  if (!fullName || !nric) {
+    statusEl.textContent = 'Please fill in at least full name and NRIC/passport no.';
+    statusEl.style.color = 'var(--red)';
+    document.getElementById('f_full_name').focus();
+    return;
+  }
+
+  if (APPS_SCRIPT_URL.includes('PASTE_YOUR')) {
+    statusEl.textContent = 'Form is not connected to a Sheet yet.';
+    statusEl.style.color = 'var(--red)';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Submitting…';
+
+  try {
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(flattenState()) });
+    statusEl.style.color = '#2f7d3c';
+    statusEl.textContent = 'Submitted — thank you.';
+  } catch (err) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = 'Could not submit — check your connection and try again.';
+    submitBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
